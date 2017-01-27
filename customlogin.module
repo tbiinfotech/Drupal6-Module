@@ -1,0 +1,136 @@
+<?php
+        /**
+        * Implementation of hook_block().
+        *   
+        * @param string $op one of "list", "view", "save" and "configure"
+        * @param integer $delta code to identify the block
+        * @param array $edit only for "save" operation
+        */
+        function customlogin_block($op = 'list', $delta = 0, $edit = array()) {
+
+            switch($op) {
+                            case 'list':
+                                         $block = array();
+                                         $block[0]['info'] = t('Custom User Login Block');
+                                         return $block;
+                                         break;
+                            case 'view':
+                                         $block = array();
+                                         $block['subject'] = '';
+                                         $block['content'] = getLoginBlock();
+                                         return $block;
+                                         break;
+            }
+
+        }
+
+        function customlogin_theme() {
+            return array(
+                        'user_login_block' => array(
+                            'arguments' => array('form' => NULL),
+                            'template' => 'user-login-block',
+                        )
+                );
+        }
+/*
+ * Create a preprocess function to pass variables to the tpl file
+ */
+        function customlogin_preprocess_user_login_block(&$vars) {
+
+            
+             // Collect the form data
+            $vars['username_name'] = $vars['form']['name']['#name'];
+            $vars['username_title'] = $vars['form']['name']['#title'];
+            $vars['username_id'] = $vars['form']['name']['#id'];
+            $vars['username_value'] = $vars['form']['name']['#value'];
+
+            $vars['password_name'] = $vars['form']['pass']['#name'];
+            $vars['password_title'] = $vars['form']['pass']['#title'];
+            $vars['password_id'] = $vars['form']['pass']['#id'];
+            $vars['password_value'] = $vars['form']['pass']['#value'];
+
+            $vars['submit_name'] = $vars['form']['submit']['#name'];
+            $vars['submit_id'] = $vars['form']['submit']['#id'];
+
+            $vars['hidden_name'] = $vars['form']['form_build_id']['#name'];
+            $vars['hidden_id'] = $vars['form']['form_build_id']['#id'];
+            $vars['hidden_value'] = $vars['form']['form_build_id']['#value'];
+
+            $vars['hidden_form_name']      = $vars['form']['form_id']['#name'];
+            $vars['hidden_form_id']        = $vars['form']['form_id']['#id'];
+            $vars['hidden_form_value']     = $vars['form']['form_id']['#value'];
+        }
+
+        function getLoginBlock() {
+
+                global $user;
+                if (!$user->uid) {
+                    $output = drupal_get_form('user_login_block');
+                    
+                }
+                else {
+
+                    $output .= t('<p class="user-info">Hi !user, welcome back.</p>', array('!user' => theme('username', $user)));
+
+                    $output .= theme('item_list', array(
+                      l(t('Your account'), 'user/'.$user->uid, array('title' => t('Edit your account'))),
+                      l(t('Sign out'), 'logout')));
+                    $output = '<div class="sign-in-box">
+							<div class="drop-inner">
+								<div class="drop-content">'.$output.'</div>
+                                                        </div>
+                               </div>';
+
+              }
+              
+                   
+              return $output;
+        }
+        
+        function customlogin_form_alter(&$form, $form_state, $form_id) {
+            if($form_id == 'user_login_block') {
+                
+
+                $form['name'] = array(
+                  '#prefix' => '<div class="sign-in-box">
+							<div class="drop-inner">
+								<div class="drop-content">
+									<div class="top-link">
+										<span class="txt1">Have an account?</span>
+										<a href="#">SIGN IN <span>here</span></a>
+									</div>
+                                                                        <div>
+											<div class="form-item">
+                                                                                          <label accesskey="E">Email address</label>',
+                  '#suffix' => '</div>',
+                  '#type' => 'textfield',
+                  '#title' => t('Email Address'),
+                  '#size' => 15,
+                  '#required' => TRUE,
+               );
+
+               $form['pass'] = array(
+                    '#type' => 'password',
+                    '#title' => t('Password'),
+                    '#required' => TRUE,
+                    '#maxlength' => 60,
+                    '#size' => 15,
+                    '#prefix' => '<div class="form-item">
+                                                         <label accesskey="P">Password:</label>   ',
+                    '#suffix' => '</div>',
+               );
+
+               $form['submit'] = array(
+                   '#type' => 'submit',
+                   '#value' => 'Log in',
+               );
+
+               $form['links']  = array (
+                    '#prefix' => '<div class="item-list">',
+                    '#suffix' => '</div></div></div><!-- drop-content ends --></div><!-- drop inner ends --></div><!-- sign in box ends-->',
+               );
+
+
+               return $form;
+            }
+        }

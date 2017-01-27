@@ -1,0 +1,4 @@
+name = Customlogin
+description = Custom Drupal Login Module. It creates a block for Drupal Login and can be positioned anywhere on the page.
+package = Custom
+core = 6.x
